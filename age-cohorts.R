@@ -12,56 +12,51 @@ theme_set(theme_bw())
 
 source("clean-census.R")
 
-age <- read.csv(file.path("data", "age.csv"), skip = 4)
-names(age) <- c("year", "age", "males", "females", "na", "total")
-age <- subset(age, year != "Grand Total" &
-                   age != "No especificado" &
-                   age != "No Especificados")
-age$year <- rep(1979:2009, each = 150)
-age$age <- gsub("Menores de 1 año", "0", age$age)
-age$age <- gsub(" año.*", "", age$age)
-age$age <- as.numeric(age$age)
-age <- subset(age, age <= 90)
+SavePlot <- function(filename,
+                     plot = last_plot(),
+                     width = 640, height = 480) {
+  filename <- file.path("graphs", str_c(filename, ".png"))
+  Cairo(filename, width = width, height = height)
+  print(plot)
+  dev.off()
+}
 
-age$total[age$total == ""] <- 0
-age$males[age$males == ""] <- 0
-age$females[age$females == ""] <- 0
-age[, 3:6] <- sapply(age[, 3:6], as.numeric)
-tail(age)
-age$yobirth <- age$year - age$age
+CleanHomicides <- function(filename) {
+  age <- read.csv(file.path("data", filename), skip = 4)
+  names(age) <- c("year", "age", "males", "females", "na", "total")
+  age <- subset(age, year != "Grand Total" &
+                     age != "No especificado" &
+                     age != "No Especificados")
+  age$year <- rep(1979:2009, each = 150)
+  age$age <- gsub("Menores de 1 año", "0", age$age)
+  age$age <- gsub(" año.*", "", age$age)
+  age$age <- as.numeric(age$age)
+  age <- subset(age, age <= 90)
+
+  age$total[age$total == ""] <- 0
+  age$males[age$males == ""] <- 0
+  age$females[age$females == ""] <- 0
+  age[, 3:6] <- sapply(age[, 3:6], as.numeric)
+  tail(age)
+  age$yobirth <- age$year - age$age
+  age <- subset(age, age <= 80 & year >= 1985)
+  return(age)
+}
+
+#Homicides for all of Mexico by age
+age <- CleanHomicides("age.csv")
+
+#Homicides for all of Michoacán, State of México, Guerrero, Oaxaca, and
+#Morelos
+age.south <- CleanHomicides("age-southwest.csv")
 
 
-age <- subset(age, age <= 80 & year >= 1985)
-
+#Join the homicide data with the population projections
 rates <- merge(age, popm, by = c("year", "age"))
 rates$rate <- rates$total / rates$pop * 100000
+#Crappy smoothing that doesn't work
 rates <- ddply(rates, .(year), transform,
-      smooth = smooth.spline(rate)$y)
-
-#What would homicide rates have been if the Mexico had the same
-#population structure as in 2000?
-imgnry <- subset(rates, age >=12 & age <= 60) 
-pops <- ddply(rates, .(year),
-      function(df) sum(subset(df, age >=12 & age <= 60)$pop)) 
-per <- subset(rates, year == 2000 & age >=12 & age <= 60)$per
-o <- c()
-for(i in 1:25) {
-  o <- c(o, pops$V1[i] * per)
-}
-imgnry$pop <- o
-
-
-
-
-ggplot(ddply(imgnry, .(year),
-             function(df) sum(df$total) / sum(df$pop) * 10^5),
-       aes(year, V1)) +
-  geom_line(size = 1.2) +
-  ylab("homicide rate") +
-  opts(title = "Homicide rate in Mexico for ages 12-60\n(assuming a population pyramid equal to that in 2000)") +
-  ylim(0, 50)
-SavePlot("imaginary-homicides")
-
+               smooth = smooth.spline(rate)$y)
 #The smoothing looks wrong for the homicides
 ggplot(subset(rates,
               yobirth %in% seq(1959, 1975, by = 5) &
@@ -71,6 +66,28 @@ ggplot(subset(rates,
   geom_line(aes(y = smooth), linetype = 2) +
   scale_colour_gradient("cohort", low = "gray90",
                         high = "black")
+
+#What would homicide rates have been if the Mexico had the same
+#population structure as in 2000?
+imgnry <- subset(rates, age >=12 & age <= 60) 
+pops <- ddply(rates, .(year),
+      function(df) sum(subset(df, age >=12 & age <= 60)$pop)) 
+per <- subset(rates, year == 2000 & age >=12 & age <= 60)$per
+const.per <- c()
+for(i in 1:25) {
+  const.per <- c(const.per, pops$V1[i] * per)
+}
+imgnry$pop <- const.per
+ggplot(ddply(imgnry, .(year),
+             function(df) sum(df$total) / sum(df$pop) * 10^5),
+       aes(year, V1)) +
+  geom_line(size = 1.2) +
+  ylab("homicide rate") +
+  opts(title = "Homicide rate in Mexico for ages 12-60\n(assuming a population pyramid equal to that in 2000)") +
+  ylim(0, 50)
+SavePlot("imaginary-homicides")
+
+
 
 #Without controling for population
 ggplot(subset(age, year <= 2004 & yobirth <= 1990 & yobirth >= 1960),
@@ -195,9 +212,7 @@ rate.g$group <- drop.levels(rate.g$group)
 ggplot(subset(rate.g,
               age >= 12 & age <= 50),
        aes(age, rate, group = group, color = group)) +
-  geom_smooth(size = 1.1,
-              method = glm,
-              formula = "y ~ x + log(x)") +
+  geom_smooth(size = 1.1) +
   geom_point() +
   scale_colour_brewer("birth\ncohort", palette="Dark2") +
   xlab("age of homicide victim") +

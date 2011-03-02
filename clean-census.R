@@ -33,7 +33,7 @@ c80 <- c80[1:139,]
 c80 <- c80[-grep("-", c80$age),]
 c80 <- na.omit(c80)
 c80$age <- gsub(" *AÑO.*", "", c80$age)
-plot(c80$total, type = "p")
+#plot(c80$total, type = "p")
 fit <- sm.spline(1:100, c80$total)
 c80$total <- fit$y
 #c80$total <- c(c80$total[1:2] ,

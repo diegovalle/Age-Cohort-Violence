@@ -11,11 +11,4 @@ ggplot(mf, aes(1990:2009, Female.Per, linetype = "Females")) +
   opts(title = "Homicide rates for males and females in Mexico (1990 = 100%)")
 SavePlot("male-female")
 
-SavePlot <- function(filename,
-                     plot = last_plot(),
-                     width = 640, height = 480) {
-  filename <- file.path("graphs", str_c(filename, ".png"))
-  Cairo(filename, width = width, height = height)
-  print(plot)
-  dev.off()
-}
+
