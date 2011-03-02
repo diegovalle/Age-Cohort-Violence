@@ -39,7 +39,7 @@ c80$total <- fit$y
 #c80$total <- c(c80$total[1:2] ,
  #             filter(c80$total, rep(1/5, 5), sides = 2)[3:98],
   #            c80$total[99:100])
-lines(1:100, c80$total)
+#lines(1:100, c80$total)
 
 
 conapo <- read.csv("census/conapo05-07.csv")

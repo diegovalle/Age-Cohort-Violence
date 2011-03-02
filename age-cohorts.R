@@ -11,15 +11,8 @@ options(stringsAsFactors = FALSE)
 theme_set(theme_bw())
 
 source("clean-census.R")
+source("utils.R")
 
-SavePlot <- function(filename,
-                     plot = last_plot(),
-                     width = 640, height = 480) {
-  filename <- file.path("graphs", str_c(filename, ".png"))
-  Cairo(filename, width = width, height = height)
-  print(plot)
-  dev.off()
-}
 
 CleanHomicides <- function(filename) {
   age <- read.csv(file.path("data", filename), skip = 4)
@@ -43,11 +36,84 @@ CleanHomicides <- function(filename) {
   return(age)
 }
 
-#Homicides for all of Mexico by age
+CohortRatePlot <- function(df, lastyear = 2007) {
+  df$group <- cut(df$yobirth, c(-Inf,
+                                      1949,
+                                      1954, 1959,
+                                      1964, 1969,
+                                      1974, 1979,
+                                      1984, 1989,
+                                      2010),
+                     labels = c("none", "50-54", "55-59",
+                       "60-64", "65-69",
+                       "70-74", "75-79",
+                       "80-84", "85-89", "none2"))
+  df <- subset(df, year <= lastyear & age >= 12 & age <= 60 &
+                   group != "none" & group != "none2", drop = TRUE)
+  df$group <- drop.levels(df$group)
+  ggplot(df, aes(age, rate, group = group, color = group)) +
+    geom_smooth(size = 1.1) +
+    geom_point() +
+    scale_colour_brewer("birth\ncohort", palette="Dark2") +
+    xlab("age of homicide victim") +
+    ylab("homicide rate") +
+    opts(title = str_c("Age specific homicide rates from 1985 to ",
+           lastyear, ", by birth cohort"))
+}
+
+AgeCohort <- function(df,
+                      sequence = seq(1960, 1975, by = 2),
+                      agemin = 12,
+                      agemax = 60,
+                      lastyear = 2007) {
+  ggplot(subset(df,
+                yobirth %in% sequence &
+                age >= agemin & age <= agemax & year <= lastyear),
+         aes(age, rate, group = yobirth, color = yobirth)) +
+    geom_line() +
+    scale_colour_gradient("birth\ncohort", low = "gray90",
+                        high = "black") +
+    opts(title = str_c("Age specific homicide rates (1985",
+           "-", lastyear,
+           "), by cohort"))
+}
+
+PoissonPlot <- function(df,
+                        variable = "total",
+                        title = "Age specific homicide rates from 1985 to 2007, by birth cohort\n (Males Only)"){
+#For the males living in the formerly very violent poor southern states
+  df$decade <- cut(df$yobirth, c(-Inf, 1949,
+                                    1959,
+                                    1969,
+                                    1979,
+                                    1989,
+                                    2010),
+                   labels = c("none", "50-59",
+                                      "60-69",
+                                      "70-79",
+                                      "80-89", "none2"))
+  df <- subset(df, year <= 2007 & age >= 12 & age <= 60 &
+                       decade != "none" & decade != "none2", drop = TRUE)
+  df$decade <- drop.levels(df$decade)
+  ggplot(df,
+         aes_string(x = "age", y = variable,
+                    group = "decade", color = "decade")) +
+    geom_smooth(size = 1.1, method = glm,
+                     family = "quasipoisson",
+                     formula = "y ~ x + log(x)") +
+    geom_point() +
+    scale_colour_brewer("birth\ncohort", palette="Dark2") +
+    xlab("age of homicide victim") +
+    ylab("number of homicides") +
+    opts(title = title)
+}
+
+
+#Homicides for all of Mexico by age and sex
 age <- CleanHomicides("age.csv")
 
 #Homicides for all of Michoacán, State of México, Guerrero, Oaxaca, and
-#Morelos
+#Morelos by age and sex
 age.south <- CleanHomicides("age-southwest.csv")
 
 
@@ -89,14 +155,23 @@ SavePlot("imaginary-homicides")
 
 
 
-#Without controling for population
-ggplot(subset(age, year <= 2004 & yobirth <= 1990 & yobirth >= 1960),
-       aes(age, males, group = yobirth, color = yobirth)) +
+#All years Without controling for population
+ggplot(subset(age, year <= 2007 & yobirth <= 1990 & yobirth >= 1950),
+       aes(age, total, group = yobirth, color = yobirth)) +
   geom_line() +
   scale_colour_gradient("cohort", low = "gray80",
                         high = "black")
 
 
+#Poisson regression by 10 year cohort
+PoissonPlot(age, "males")
+SavePlot("age-cohorts-regression-males")
+PoissonPlot(age.south, "total", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Michoacán, Morelos, Guerrero and Oaxaca)")
+PoissonPlot(age.south, "males", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Males living in Michoacán, Morelos, Guerrero, Oaxaca and the State of México)")
+SavePlot("age-cohorts-regression-south-males")
+
+                                    
+#Homicide rates by age group
 rates$agegroup <- cut(rates$age, c(-Inf, 4, 12, 17, 29, 39, 49, 59, Inf),
                       labels = c("0-4", "5-12", "13-17", "18-30", "30-39", "40-49", "50-59", ">60"))
 rate.g <- ddply(rates,
@@ -109,6 +184,7 @@ ggplot(rate.g, aes(year, V1, group = agegroup, color = agegroup)) +
   scale_color_brewer("Age Group", palette = "Dark2")
 SavePlot("ages-homicide")
 
+#Age vs Homicide rate
 ggplot(subset(rates, year %in% c(1985, 1995, 2005, 2009)),
               aes(age, rate, group = factor(year), color = factor(year))) +
   geom_line(size = 1.2) +
@@ -118,6 +194,7 @@ ggplot(subset(rates, year %in% c(1985, 1995, 2005, 2009)),
 SavePlot("age-rate-period")
 
 
+#Age specific mean homicide rates
 rates$group <- cut(rates$yobirth, c(-Inf, 1949, 1959, 1969, 1979,
                                     1989, 1999, 2010),
                    labels = c("none", "50-59", "60-69", "70-79", "80-89",
@@ -137,131 +214,21 @@ ggplot(rate.g, aes(age, V1, group = group, color = group)) +
 SavePlot("cohort-mean-homicide")
 
 
-
-ggplot(subset(rates,
-              yobirth %in% seq(1960, 1975, by = 2) &
-              age >= 12 & age <= 50 & year < 2006),
-       aes(age, rate, group = yobirth, color = yobirth)) +
-  geom_line() +
-  scale_colour_gradient("cohort", low = "gray90",
-                        high = "black") +
-  theme_bw()
-
-ggplot(subset(rates,
-              yobirth %in% seq(1975, 1990, by = 3) &
-              age >= 12 & age <= 50 & year < 2007),
-       aes(age, rate, group = yobirth, color = yobirth)) +
-  geom_line() +
-  scale_colour_gradient("cohort", low = "gray90",
-                        high = "black")
-
-ggplot(subset(rates,
-              yobirth %in% seq(1960, 1990, by = 5) &
-              age >= 12 & age <= 50 & year < 2010),
-       aes(age, rate, group = yobirth, color = yobirth)) +
-  geom_line(size = 1.2) +
-  scale_colour_gradient("cohort", low = "gray80",
-                        high = "black") 
+#Age specific homicide rates by birth cohort (no smoothing)
+AgeCohort(rates, seq(1960, 1975, by = 2), 12, 60, 2007)
+AgeCohort(rates, seq(1975, 1990, by = 2), 12, 60, 2007)
+AgeCohort(rates, seq(1960, 1990, by = 5), 12, 60, 2010)
 SavePlot("cohort-homicide-drug-war")
 
-ggplot(subset(rates,
-              age <= 50 & year < 2007 &
-              yobirth %in% seq(1930, 1990, by = 3)),
-       aes(age, rate, group = yobirth, color = yobirth)) +
-  geom_line() +
-  scale_colour_gradient("cohort", low = "gray90",
-                        high = "black") 
-
-ggplot(subset(rates,
-              yobirth %in% seq(1930, 1990, by = 3) &
-              age >= 12 & age <= 50 & year < 2007),
-       aes(age, rate, group = yobirth, color = yobirth)) +
-  geom_line() +
-  scale_colour_gradient("cohort", low = "gray90",
-                        high = "black")
+AgeCohort(rates, seq(1930, 1990, by = 3), 0, 60, 2007)
+AgeCohort(rates, seq(1930, 1990, by = 5), 12, 60, 2007)
 
 
 
+#Cohort year smoothed
+CohortRatePlot(rates, 2007)
+SavePlot("age-cohorts-regression", w = 800, h = 600)
+#Shows the effect of the drug war on all cohorts
+CohortRatePlot(rates, 2010)
+SavePlot("age-cohorts-regression-2009", w = 800, h = 600)
 
-rates$group <- cut(rates$yobirth, c(-Inf,
-                                    1954, 1959,
-                                    1964, 1969,
-                                    1974, 1979,
-                                    1984, 1989,
-                                    2010),
-                   labels = c("none", "55-59",
-                                      "60-64", "65-69",
-                                      "70-74", "75-79",
-                     "80-84", "85-89", "none2"))
-rates$group <- cut(rates$yobirth, c(-Inf, 1949,
-                                    1959,
-                                    1969,
-                                    1979,
-                                    1989,
-                                    2010),
-                   labels = c("none", "50-59",
-                                      "60-69",
-                                      "70-79",
-                                      "80-89", "none2"))
-rate.g <- subset(rates, year <= 2007 &
-                       group != "none" & group != "none2", drop = TRUE)
-rate.g$group <- drop.levels(rate.g$group)
-
-
-
-ggplot(subset(rate.g,
-              age >= 12 & age <= 50),
-       aes(age, rate, group = group, color = group)) +
-  geom_smooth(size = 1.1) +
-  geom_point() +
-  scale_colour_brewer("birth\ncohort", palette="Dark2") +
-  xlab("age of homicide victim") +
-  ylab("homicide rate") +
-  opts(title = "Age specific homicide rates from 1985 to 2007, by birth cohort")
-SavePlot("age-cohorts-regression")
-
-#Regressions
-mod <- glm(total ~ log(age + 10) + age,
-           family=poisson(log), data = rate.g)
-summary(mod)
-yhat <- predict (mod, type="response")
-z <- (rate.g$total-yhat)/sqrt(yhat)
-cat ("overdispersion ratio is ", sum(z^2)/(781), "\n")
-cat ("p-value of overdispersion test is ", pchisq (sum(z^2), 780), "\n")
-
-
-mod.disp <- glm.poisson.disp(mod, maxit = 200)
-summary(mod.disp)
-plot(mod)
-mod.disp$dispersion
-
-# compute predictions on a grid of x-values...
-x0 <- seq(min(rate.g$age), max(rate.g$age))
-new <- data.frame(log.age...10 = log(x0),
-                  age = x0,
-                  log.pop. = log(1000000))
-new <- cbind(new, "log(pop)" = log(1000000))
-eta0 <- predict.glm(mod, new = new, se = TRUE)
-eta0.disp <- predict(mod.disp, new = new, se = TRUE)
-# ... and plot the mean functions with variab1ility bands
-plot(rate.g$age, rate.g$total)
-lines(x0, exp(eta0$fit))
-lines(x0, exp(eta0$fit+2*eta0$se), lty=2)
-lines(x0, exp(eta0$fit-2*eta0$se), lty=2)
-lines(x0, exp(eta0.disp$fit), col=2)
-lines(x0, exp(eta0.disp$fit+2*eta0.disp$se), lty=2, col=2)
-lines(x0, exp(eta0.disp$fit-2*eta0.disp$se), lty=2, col=2)
-
-
-#One regression per birth cohort decade
-llist <- dlply(rate.g, .(group),
-      function(df) glm(total ~ age + log(age+10) + offset(log(pop)),
-                       family = quasipoisson, data = df))
-lapply(llist, summary)
-
-#multi-level model
-lme.fit <- lmer(total ~ age + log(age+10) + (1 | group) + offset(log(pop)),
-                family = "poisson",
-                data = rate.g)
-coef(lme.fit)
-coefplot(llist[[4]])
