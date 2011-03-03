@@ -1,0 +1,17 @@
+library(ggplot2)
+library(stringr)
+library(gdata)
+library(tseries)
+library(pspline)
+library(Hmisc)
+library(arm)
+library(dispmod)
+library(Cairo)
+options(stringsAsFactors = FALSE)
+theme_set(theme_bw())
+
+source("src/utils.R")
+source("src/clean-census.R")
+source("src/male-female.R")
+source("src/age-cohorts.R")
+

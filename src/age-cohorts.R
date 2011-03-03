@@ -1,18 +1,3 @@
-library(ggplot2)
-library(stringr)
-library(gdata)
-library(tseries)
-library(pspline)
-library(Hmisc)
-library(arm)
-library(dispmod)
-library(Cairo)
-options(stringsAsFactors = FALSE)
-theme_set(theme_bw())
-
-source("clean-census.R")
-source("utils.R")
-
 
 CleanHomicides <- function(filename) {
   age <- read.csv(file.path("data", filename), skip = 4)
@@ -229,6 +214,6 @@ AgeCohort(rates, seq(1930, 1990, by = 5), 12, 60, 2007)
 CohortRatePlot(rates, 2007)
 SavePlot("age-cohorts-regression", w = 800, h = 600)
 #Shows the effect of the drug war on all cohorts
-CohortRatePlot(rates, 2010)
+CohortRatePlot(rates, 2009)
 SavePlot("age-cohorts-regression-2009", w = 800, h = 600)
 

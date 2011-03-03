@@ -1,8 +1,3 @@
-c90 <- read.csv("census/census1990.csv", skip = 6)
-c95 <- read.csv("census/census1995.csv", skip = 6)
-c00 <- read.csv("census/census2000.csv", skip = 6)
-c05 <- read.csv("census/census2005.csv", skip = 6)
-
 
 CleanCensus <- function(df) {
   names(df) <-  c("age", "pop")
@@ -20,6 +15,12 @@ CleanCensus <- function(df) {
   #df$pop
   fit$y
 }
+
+
+c90 <- read.csv("census/census1990.csv", skip = 6)
+c95 <- read.csv("census/census1995.csv", skip = 6)
+c00 <- read.csv("census/census2000.csv", skip = 6)
+c05 <- read.csv("census/census2005.csv", skip = 6)
 
 pop <- data.frame(rbind(t(CleanCensus(c90)),  t(CleanCensus(c95)),
       t(CleanCensus(c00)),  t(CleanCensus(c05))))
