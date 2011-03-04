@@ -1,2 +1,4 @@
 * Fix the multi-level model
-* find whether female and male homicide data from 1985 is available
+* Find whether female and male homicide data from 1985 onwards is available
+* Create population estimates for females
+* The percentage of men decreased from 99.3% to 96.%. Did this play a role in decrease in homicides?

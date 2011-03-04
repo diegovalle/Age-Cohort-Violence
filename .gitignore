@@ -4,3 +4,5 @@ census-estimates.csv
 *.html
 *.odt
 *.R~
+*.*~
+.Rhistory

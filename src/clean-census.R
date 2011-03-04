@@ -1,12 +1,15 @@
-
-CleanCensus <- function(df) {
-  names(df) <-  c("age", "pop")
+CleanCensus <- function(filename, sex = "pop") {
+#Clean the Census and Population Survey data
+  df <- read.csv(filename, skip = 4,
+                fileEncoding = "windows-1252")
+  names(df) <-  c("age", "pop", "popm", "popf")
   df <- subset(df, age != "Total" &
                 age != "No especificado")
   df <- df[-grep("De.*", df$age),]
   df$age <- as.numeric(gsub(" año.*", "", df$age))
+  df[2:4] <- apply(df[2:4], 2, function(x) as.numeric(gsub(",", "", x)))
   df <- na.omit(df)
-  fit <- sm.spline(1:100, df$pop)
+  fit <- smooth.spline(1:100, df[[sex]])
   #print(plot(fit$y, type = "l"))
   #print(points(df$pop))
 #  df$pop <- c(df$pop[1:2] ,
@@ -16,33 +19,33 @@ CleanCensus <- function(df) {
   fit$y
 }
 
-
-c90 <- read.csv("census/census1990.csv", skip = 6)
-c95 <- read.csv("census/census1995.csv", skip = 6)
-c00 <- read.csv("census/census2000.csv", skip = 6)
-c05 <- read.csv("census/census2005.csv", skip = 6)
-
-pop <- data.frame(rbind(t(CleanCensus(c90)),  t(CleanCensus(c95)),
-      t(CleanCensus(c00)),  t(CleanCensus(c05))))
-
-
-
-c80 <- read.csv("census/Pob_1980_02.csv", skip = 7)
-names(c80) <- c("X", "age", "total", "males", "females")
-c80$X <- NULL
-c80 <- c80[1:139,]
-c80 <- c80[-grep("-", c80$age),]
-c80 <- na.omit(c80)
-c80$age <- gsub(" *AÑO.*", "", c80$age)
-#plot(c80$total, type = "p")
-fit <- sm.spline(1:100, c80$total)
-c80$total <- fit$y
+CleanCensus80 <- function(sex = "pop") {
+#The Census data for 1980 comes in a different format 
+  c80 <- read.csv("census/Pob_1980_02.csv", skip = 7)
+  names(c80) <- c("X", "age", "total", "males", "females")
+  c80$X <- NULL
+  c80 <- c80[1:139,]
+  c80 <- c80[-grep("-", c80$age),]
+  c80 <- na.omit(c80)
+  c80$age <- gsub(" *AÑO.*", "", c80$age)
+                                        #plot(c80$total, type = "p")
+  fit <- smooth.spline(1:100, c80[[sex]])
+  fit$y
 #c80$total <- c(c80$total[1:2] ,
  #             filter(c80$total, rep(1/5, 5), sides = 2)[3:98],
   #            c80$total[99:100])
 #lines(1:100, c80$total)
+}
+
+pop <- data.frame(rbind(t(CleanCensus("census/census1990sex.csv")),
+                        t(CleanCensus("census/census1995sex.csv")),
+                        t(CleanCensus("census/census2000sex.csv")),
+                        t(CleanCensus("census/census2005sex.csv"))
+                        ))
 
 
+
+#Population by age is available from 2005 onwards by the CONAPO
 conapo <- read.csv("census/conapo05-07.csv")
 
 
@@ -52,7 +55,7 @@ pop <- pop[c(rep(6,9),
              1,rep(6,4),
              2,rep(6,4),
              3,rep(6,4)),]
-pop <- rbind(c(c80$total), pop,
+pop <- rbind(CleanCensus80(), pop,
              conapo$X2005, conapo$X2006, conapo$X2007,
              conapo$X2008, conapo$X2009)
 
@@ -85,5 +88,5 @@ SavePlot("pyramid")
 #compare it to the colmex population estimate
 popm$agegroup <- cut(popm$age, c(-Inf,0, 4, 9, 14, 19, 24, 29, 34, 39, Inf))
 write.csv(cast(ddply(popm, .(year, agegroup), function(df) sum(df$pop)),
-     year ~ agegroup), "census-estimates.csv")
+     year ~ agegroup, value = "V1"), "census-estimates.csv")
 

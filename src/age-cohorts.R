@@ -65,7 +65,7 @@ AgeCohort <- function(df,
 
 PoissonPlot <- function(df,
                         variable = "total",
-                        title = "Age specific homicide rates from 1985 to 2007, by birth cohort\n (Males Only)"){
+                        title = "Age specific homicide rates from 1985 to 2007, by birth cohort\n (Male victims living in Mexico only)"){
 #For the males living in the formerly very violent poor southern states
   df$decade <- cut(df$yobirth, c(-Inf, 1949,
                                     1959,
@@ -149,10 +149,18 @@ ggplot(subset(age, year <= 2007 & yobirth <= 1990 & yobirth >= 1950),
 
 
 #Poisson regression by 10 year cohort
+PoissonPlot(age, "total", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Total Murders in all of Mexico)")
+SavePlot("age-cohorts-regression-total")
+
 PoissonPlot(age, "males")
 SavePlot("age-cohorts-regression-males")
+
+PoissonPlot(age, "females", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Female Murders in all of Mexico)")
+SavePlot("age-cohorts-regression-females")
+
 PoissonPlot(age.south, "total", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Michoacán, Morelos, Guerrero and Oaxaca)")
-PoissonPlot(age.south, "males", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Males living in Michoacán, Morelos, Guerrero, Oaxaca and the State of México)")
+
+PoissonPlot(age.south, "males", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Males victims living in Michoacán, Morelos, Guerrero, Oaxaca and the State of México)")
 SavePlot("age-cohorts-regression-south-males")
 
                                     
