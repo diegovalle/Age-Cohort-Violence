@@ -1,11 +1,11 @@
-Age-Period-Cohort Analysis of Homicides in Mexico
+* Age-Period-Cohort Analysis of Homicides in Mexico
 
-Why did the homicide rate start decreasing in Mexico during 1992-1993 and didnt't stop until the start of the drug war?
+Why did the homicide rate start decreasing in Mexico during 1992-1993 and didn't stop until the start of the drug war?
 
 Sources:
 
-[[http://www.inegi.org.mx/est/contenidos/Proyectos/ccpv/default.aspx][Census]] - (1980, 1990, 1995, 2000ma)
+[[http://www.inegi.org.mx/est/contenidos/Proyectos/ccpv/default.aspx][Population by age - Census]] - (1980, 1990, 1995, 2000)
 
-[[http://www.conapo.gob.mx/index.php?option=com_content&view=article&id=36&Itemid=234][CONAPO - Population by age]] (2005 - 2009)
+[[http://www.conapo.gob.mx/index.php%3Foption%3Dcom_content&view%3Darticle&id%3D36&Itemid%3D234][Population by age - CONAPO]] (2005 - 2009)
 
 [[http://sinais.salud.gob.mx/basesdedatos/defunciones.html][Homicide Data - Dirección General de Información en Salud (DGIS). Base de datos de defunciones 1979-2009: Sistema Nacional de Información en Salud (SINAIS). México: Secretaría de Salud.]]
