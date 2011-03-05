@@ -4,3 +4,4 @@
 ** DONE Get the census data for females
 ** TODO Fix the functions to create population estimates by sex
 * TODO The percentage of men decreased from 99.3% to 96.%. Did this play a role in decrease in homicides?
+* TODO Get population data for the narco states
