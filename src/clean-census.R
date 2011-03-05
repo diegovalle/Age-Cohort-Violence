@@ -19,7 +19,7 @@ CleanCensus <- function(filename, sex = "pop") {
   fit$y
 }
 
-CleanCensus80 <- function(sex = "pop") {
+CleanCensus80 <- function(sex = "total") {
 #The Census data for 1980 comes in a different format 
   c80 <- read.csv("census/Pob_1980_02.csv", skip = 7)
   names(c80) <- c("X", "age", "total", "males", "females")

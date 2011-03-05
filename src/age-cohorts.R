@@ -85,12 +85,16 @@ PoissonPlot <- function(df,
                     group = "decade", color = "decade")) +
     geom_smooth(size = 1.1, method = glm,
                      family = "quasipoisson",
-                     formula = "y ~ x + log(x)") +
+                     formula = "y ~ x + log(x + 10)") +
     geom_point() +
     scale_colour_brewer("birth\ncohort", palette="Dark2") +
     xlab("age of homicide victim") +
     ylab("number of homicides") +
-    opts(title = title)
+    opts(title = title) 
+    #geom_text(data = data.frame(x = 50, y = 500, decade = ""), aes(x,y),
+     #         label = "hat(y[i]) *\176* Poisson(x + log(x))",
+      #            parse = TRUE, legend = FALSE,
+       #       color = "black")
 }
 
 
@@ -108,7 +112,7 @@ rates$rate <- rates$total / rates$pop * 100000
 #Crappy smoothing that doesn't work
 rates <- ddply(rates, .(year), transform,
                smooth = smooth.spline(rate)$y)
-#The smoothing looks wrong for the homicides
+#The smoothing looks wrong for the homicides, use some regressions
 ggplot(subset(rates,
               yobirth %in% seq(1959, 1975, by = 5) &
               age >= 12 & age <= 50 & year < 2006),
@@ -139,7 +143,6 @@ ggplot(ddply(imgnry, .(year),
 SavePlot("imaginary-homicides")
 
 
-
 #All years Without controling for population
 ggplot(subset(age, year <= 2007 & yobirth <= 1990 & yobirth >= 1950),
        aes(age, total, group = yobirth, color = yobirth)) +
@@ -160,7 +163,7 @@ SavePlot("age-cohorts-regression-females")
 
 PoissonPlot(age.south, "total", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Michoacán, Morelos, Guerrero and Oaxaca)")
 
-PoissonPlot(age.south, "males", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Males victims living in Michoacán, Morelos, Guerrero, Oaxaca and the State of México)")
+PoissonPlot(age.south, "males", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Male victims living in Michoacán, Morelos, Guerrero, Oaxaca and the State of México)")
 SavePlot("age-cohorts-regression-south-males")
 
                                     
@@ -178,7 +181,7 @@ ggplot(rate.g, aes(year, V1, group = agegroup, color = agegroup)) +
 SavePlot("ages-homicide")
 
 #Age vs Homicide rate
-ggplot(subset(rates, year %in% c(1985, 1995, 2005, 2009)),
+ggplot(subset(rates, age <= 60 & year %in% c(1985, 1995, 2005, 2009)),
               aes(age, rate, group = factor(year), color = factor(year))) +
   geom_line(size = 1.2) +
   opts(title = "") +

@@ -10,6 +10,15 @@ library(nlme)
 options(stringsAsFactors = FALSE)
 theme_set(theme_bw())
 
+CairoFonts(
+	regular="Aller:style=Regular",
+	bold="Helvetica:style=Bold",
+	italic="Helvetica:style=Italic",
+	bolditalic="Helvetica:style=Bold Italic,BoldItalic",
+	symbol="Symbol"
+)
+
+
 source("src/utils.R")
 source("src/clean-census.R")
 source("src/male-female.R")

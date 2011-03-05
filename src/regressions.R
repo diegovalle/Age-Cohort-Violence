@@ -42,7 +42,7 @@ lines(x0, exp(eta0.disp$fit-2*eta0.disp$se), lty=2, col=2)
 #Second - one regression per birth cohort decade
 cat("results of a quasipoisson regression for each decade cohort:\n\n")
 llist <- dlply(rates.reg, .(group),
-      function(df) glm(total ~ age + log(age+10) + offset(log(pop)),
+      function(df) glm(total ~ age + log(age + 10) + offset(log(pop)),
                        family = quasipoisson, data = df))
 lapply(llist, function(x) print(summary(x)))
 coefplot(llist[[4]])
