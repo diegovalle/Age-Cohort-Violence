@@ -105,6 +105,10 @@ age <- CleanHomicides("age.csv")
 #Morelos by age and sex
 age.south <- CleanHomicides("age-southwest.csv")
 
+#Homicides for Baja California, Sonora, Sinaloa, Chihuahua, Durango,
+#Nuevo León and Tamaulipas
+age.drug <- CleanHomicides("age-drug.csv")
+
 
 #Join the homicide data with the population projections
 rates <- merge(age, popm, by = c("year", "age"))
@@ -166,6 +170,8 @@ PoissonPlot(age.south, "total", "Age specific homicide rates from 1985 to 2007, 
 PoissonPlot(age.south, "males", "Age specific homicide rates from 1985 to 2007, by birth cohort\n(Male victims living in Michoacán, Morelos, Guerrero, Oaxaca and the State of México)")
 SavePlot("age-cohorts-regression-south-males")
 
+PoissonPlot(age.drug, "males","Age specific homicide rates from 1985 to 2007, by birth cohort\n(Male victims living in Baja California, Sinaloa, Sonora, Durango, Chihuahua,\nNuevo Leon and Tamaulipas)")
+SavePlot("age-cohorts-regression-drug-males")
                                     
 #Homicide rates by age group
 rates$agegroup <- cut(rates$age, c(-Inf, 4, 12, 17, 29, 39, 49, 59, Inf),

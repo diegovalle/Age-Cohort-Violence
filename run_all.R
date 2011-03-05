@@ -12,9 +12,9 @@ theme_set(theme_bw())
 
 CairoFonts(
 	regular="Aller:style=Regular",
-	bold="Helvetica:style=Bold",
-	italic="Helvetica:style=Italic",
-	bolditalic="Helvetica:style=Bold Italic,BoldItalic",
+	bold="Aller:style=Bold",
+	italic="Aller:style=Italic",
+	bolditalic="Aller:style=Bold Italic,BoldItalic",
 	symbol="Symbol"
 )
 
