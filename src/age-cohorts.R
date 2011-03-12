@@ -133,7 +133,7 @@ real <- ddply(real, "year", transform, per = pop / sum(pop))
 imgnry <- real 
 pops <- ddply(real, .(year),
               function(df) sum(df$pop)) 
-per <- subset(real, year == 2000)$per
+per <- subset(real, year == 2009)$per
 const.per <- c()
 for(i in 1:25) {
   const.per <- c(const.per, pops$V1[i] * per)
@@ -157,7 +157,7 @@ ggplot(melt(real.pop, id= "year"),
   scale_linetype("homicide rate",
                  breaks = c("V1", "V2"),
                  labels = c("real homicide rate",
-                "homicide rate with a population structure equal to 2000"))
+                "homicide rate with a population structure equal to 2009"))
 SavePlot("imaginary-homicides")
 
 
