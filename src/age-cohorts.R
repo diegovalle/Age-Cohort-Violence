@@ -128,22 +128,39 @@ ggplot(subset(rates,
 
 #What would homicide rates have been if the Mexico had the same
 #population structure as in 2000?
-imgnry <- subset(rates, age >=12 & age <= 60) 
-pops <- ddply(rates, .(year),
-      function(df) sum(subset(df, age >=12 & age <= 60)$pop)) 
-per <- subset(rates, year == 2000 & age >=12 & age <= 60)$per
+real <- subset(rates, age >= 12 & age <= 60)
+real <- ddply(real, "year", transform, per = pop / sum(pop))
+imgnry <- real 
+pops <- ddply(real, .(year),
+              function(df) sum(df$pop)) 
+per <- subset(real, year == 2000)$per
 const.per <- c()
 for(i in 1:25) {
   const.per <- c(const.per, pops$V1[i] * per)
 }
-imgnry$pop <- const.per
-ggplot(ddply(imgnry, .(year),
-             function(df) sum(df$total) / sum(df$pop) * 10^5),
-       aes(year, V1)) +
-  geom_line(size = 1.2) +
+sum(pops$V1[16] * per)
+sum(sum(subset(real, year == 2000)$pop) * subset(real, year == 2000)$per)
+sum(real$total) / sum(real$pop) * 10^5
+sum(real$total) / sum(real$imaginary.pop) * 10^5
+real$imaginary.pop <- const.per
+real$rate <- real$total / real$pop * 10^5
+real$imaginary.rate <- real$total / real$imaginary.pop * 10^5
+real.pop <- ddply(real, .(year),
+             function(df) c(sum(df$total) / sum(df$pop) * 10^5,
+                            wtd.mean(df$rate, df$imaginary.pop) )
+                  )
+
+ggplot(melt(real.pop, id= "year"),
+       aes(year, value, group = variable, linetype = variable)) +
+  geom_line(size = 1.2, alpha = .8) +
   ylab("homicide rate") +
-  opts(title = "Homicide rate in Mexico for ages 12-60\n(assuming a population pyramid equal to that in 2000)") +
-  ylim(0, 50)
+  opts(title = "Homicide rate in Mexico (ages 12-60)") +
+  ylim(0, max(real.pop$V2)) +
+  opts(legend.position = "bottom") +
+  scale_linetype("homicide rate",
+                 breaks = c("V1", "V2"),
+                 labels = c("real homicide rate",
+                "homicide rate with a population structure equal to 2000"))
 SavePlot("imaginary-homicides")
 
 
