@@ -128,7 +128,7 @@ ggplot(subset(rates,
 
 #What would homicide rates have been if the Mexico had the same
 #population structure as in 2000?
-real <- subset(rates, age >= 12 & age <= 60)
+real <- subset(rates, age >= 5 & age <= 60)
 real <- ddply(real, "year", transform, per = pop / sum(pop))
 imgnry <- real 
 pops <- ddply(real, .(year),
@@ -138,10 +138,7 @@ const.per <- c()
 for(i in 1:25) {
   const.per <- c(const.per, pops$V1[i] * per)
 }
-sum(pops$V1[16] * per)
-sum(sum(subset(real, year == 2000)$pop) * subset(real, year == 2000)$per)
-sum(real$total) / sum(real$pop) * 10^5
-sum(real$total) / sum(real$imaginary.pop) * 10^5
+
 real$imaginary.pop <- const.per
 real$rate <- real$total / real$pop * 10^5
 real$imaginary.rate <- real$total / real$imaginary.pop * 10^5
@@ -154,7 +151,7 @@ ggplot(melt(real.pop, id= "year"),
        aes(year, value, group = variable, linetype = variable)) +
   geom_line(size = 1.2, alpha = .8) +
   ylab("homicide rate") +
-  opts(title = "Homicide rate in Mexico (ages 12-60)") +
+  opts(title = "Homicide rate in Mexico (ages 5-60)") +
   ylim(0, max(real.pop$V2)) +
   opts(legend.position = "bottom") +
   scale_linetype("homicide rate",
