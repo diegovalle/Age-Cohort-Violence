@@ -37,7 +37,7 @@ CohortRatePlot <- function(df, lastyear = 2007) {
                    group != "none" & group != "none2", drop = TRUE)
   df$group <- drop.levels(df$group)
   ggplot(df, aes(age, rate, group = group, color = group)) +
-    geom_smooth(size = 1.1) +
+    geom_smooth(size = 1.1, method = loess) +
     geom_point() +
     scale_colour_brewer("birth\ncohort", palette="Dark2") +
     xlab("age of homicide victim") +
@@ -151,13 +151,13 @@ ggplot(melt(real.pop, id= "year"),
        aes(year, value, group = variable, linetype = variable)) +
   geom_line(size = 1.2, alpha = .8) +
   ylab("homicide rate") +
-  opts(title = "Homicide rate in Mexico (ages 5-60)") +
+  opts(title = "Homicide rate in Mexico (only counting ages 5-60)") +
   ylim(0, max(real.pop$V2)) +
-  opts(legend.position = "bottom") +
-  scale_linetype("homicide rate",
+  opts(legend.position = "top") +
+  scale_linetype("",
                  breaks = c("V1", "V2"),
                  labels = c("real homicide rate",
-                "homicide rate with a population structure equal to 2009"))
+                   "simulated homicide rate with a population structure equal to 2009"))
 SavePlot("imaginary-homicides")
 
 
@@ -197,6 +197,7 @@ ggplot(rate.g, aes(year, V1, group = agegroup, color = agegroup)) +
   geom_line(size = 1.2) +
   opts(title = "Homicide rates by age group (1985-2007)") +
   ylab("homicide rate") +
+  xlab("year homicide occurred")
   scale_color_brewer("Age Group", palette = "Dark2")
 SavePlot("ages-homicide")
 
@@ -205,7 +206,7 @@ ggplot(subset(rates, age <= 60 & year %in% c(1985, 1995, 2005, 2009)),
               aes(age, rate, group = factor(year), color = factor(year))) +
   geom_line(size = 1.2) +
   opts(title = "") +
-  scale_color_hue("year") +
+  scale_color_hue("year\nhomicide\noccurred") +
   opts(title = "Homicide rates by age and year")
 SavePlot("age-rate-period")
 
