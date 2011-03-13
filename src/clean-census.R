@@ -78,7 +78,8 @@ ggplot(subset(popm, year %in% seq(1985, 2009, by = 3) &
               age >= 12 & age <= 60),
        aes(per, age, group = year, color = year)) +
   geom_line(alpha = .9) +
-  scale_x_continuous(trans = 'reverse', formatter = "percent") +
+  scale_x_continuous(trans = 'reverse', formatter = "percent",
+                     xlim = c(0, max(popm$age)) ) +
   opts(title = "Population structure in Mexico (ages 12-60)") +
   xlab("percentage of the population")+
   scale_colour_gradient("year", low = "gray70",
