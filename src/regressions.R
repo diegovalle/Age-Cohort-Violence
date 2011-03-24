@@ -9,6 +9,7 @@ rates.reg$group <- drop.levels(rates.reg$group)
 mod <- glm(total ~ log(age + 10) + age,
            family=poisson(log), data = rates.reg)
 summary(mod)
+dispersiontest(mod)
 yhat <- predict (mod, type="response")
 z <- (rates.reg$total-yhat)/sqrt(yhat)
 cat("finding out if the data is overdispersed:\n\n")

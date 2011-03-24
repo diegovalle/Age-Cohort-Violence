@@ -7,6 +7,7 @@ library(dispmod)
 library(arm)
 library(Cairo)
 library(nlme)
+library(AER)
 options(stringsAsFactors = FALSE)
 theme_set(theme_bw())
 
